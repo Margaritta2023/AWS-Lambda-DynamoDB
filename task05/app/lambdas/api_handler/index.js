@@ -1,55 +1,52 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
-const moment = require('moment')
+const uuid = require('uuid');
+const moment = require('moment');
 
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const Table_Name = process.env.target_table
+const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
-exports.handler = async (event,context) => {
+
+const DB_Table = process.env.target_table;
+
+exports.handler = async (event, context) => {
+  try {
+  
+    const { principalId, content } = event;
+
+    const freshID = uuid.v4();
     
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    const freshTime = moment.utc().toISOString();
 
-    try {
-        const {principalId,content} = event
-    
-        const freshId = uuid.v4();
-        const freshTime = moment.utc().toISOString();
-   
-   
-        const newItem = {
-            TableName: Table_Name,
-            Item: {
-                id: freshId,
-                principalId: principalId,
-                createdAt: freshTime,
-                body: content,
-            },
-        };
+    const item = {
+      TableName: DB_Table,
+      Item: {
+        id: freshID,
+        principalId: principalId,
+        createdAt: freshTime,
+        body: content
+      }
+    };
 
-        await dynamoDB.put(item).promise();
+ 
+    await dynamoDb.put(item).promise();
 
-        const newObject = {
-            TableName: Table_Name,
-            Item: {
-                id: freshId,
-                principalId: principalId,
-                createdAt: freshTime,
-                body: content,
-            },
-        }
+    // Prepare the event object to return
+    const resultObj = {
+      id: freshID,
+      principalId: principalId,
+      createdAt: freshTime,
+      body: content
+    };
 
-        return {
-            statusCode:201,
-            body:JSON.stringify({event:newObject})
-        };
-        } catch (error) {
-         console.log("Eror during request:", error)
-         return {
-            statusCode:500,
-            body:JSON.stringify({error:"Server Error"})
-         }
-        }
-       
 
-    }
-
+    return {
+      statusCode: 201,
+      body: JSON.stringify({ event: resultObj })
+    };
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Internal Server Error' })
+    };
+  }
+};

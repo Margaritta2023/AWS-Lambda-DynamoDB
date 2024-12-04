@@ -14,9 +14,7 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt",
-            "dynamodb:DescribeTable",
-            "dynamodb:PutItem"
+            "kms:Decrypt"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -32,38 +30,18 @@
     "deploy_stage": "api",
     "dependencies": [],
     "resources": {
-      "/":{
-        "enable_cors": false,
+      "/events": {
+        "enable_cors": true,
         "POST": {
-          "enable_proxy": false,
-          "authorization_type": "NONE", 
-          "integration_type": "lambda", 
-          "lambda_name":"api_handler",
-          "api_key_required": false, 
-          "method_request_parameters": {}, 
-          "integration_request_body_template": {}, 
-          "responses": [], 
-          "integration_responses": [], 
-          "default_error_pattern": true,
-           "content_type": "application/json"
-        }
-      },
-
-      "/events":{
-        "enable_cors": false,
-        "POST": {
-          "enable_proxy": false,
-         
-          "authorization_type": "NONE", 
-          "integration_type": "lambda", 
-          "lambda_name":"api_handler",
-          "api_key_required": false, 
-          "method_request_parameters": {}, 
-          "integration_request_body_template": {}, 
-          "responses": [], 
-          "integration_responses": [], 
-          "default_error_pattern": true,
-          "content_type": "application/json"
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "lambda_name": "api_handler",
+          "api_key_required": false,
+          "method_request_parameters": {},
+          "integration_request_body_template": {},
+          "responses": [],
+          "integration_responses": [],
+          "default_error_pattern": true
         }
       }
     },
