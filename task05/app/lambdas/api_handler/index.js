@@ -1,53 +1,52 @@
-const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const {
+    DynamoDBDocumentClient,
+    PutCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const { v4: uuidv4 } = require("uuid");
  
-// Initialize DynamoDB DocumentClient
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Events"; // Replace with your DynamoDB table name
+const client = new DynamoDBClient({});
+const dynamo = DynamoDBDocumentClient.from(client);
+const tableName = process.env.target_table;
  
-exports.handler = async (event) => {
-    try {
-        // Parse the incoming request body
-        const body = JSON.parse(event.body);
+exports.handler = async (event, context) => {
+    let body;
+    let statusCode = 200;
+    const headers = {
+        "Content-Type": "application/json",
+    };
+    console.log(event);
  
-        // Validate required fields
-if (!body.name || !body.details) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "Missing required fields: name, details" }),
-            };
-        }
  
-        // Generate a unique event ID and timestamp
-        const eventId = uuidv4();
-        const timestamp = new Date().toISOString();
+    // const requestJSON = JSON.parse(event.input.body);
+    const newEvent = {
+        id: uuidv4(),
+        principalId: event.principalId,
+        createdAt: new Date().toISOString(),
+        body: event.content,
+    };
  
-        // Create the event item to insert into DynamoDB
-        const item = {
-            eventId,
-name: body.name,
-            details: body.details,
-            createdAt: timestamp,
-        };
- 
-        // Save the item to the DynamoDB table
-        await dynamoDb.put({
+    await dynamo.send(
+        new PutCommand({
             TableName: tableName,
-            Item: item,
-        }).promise();
+            Item: newEvent,
+        })
+    );
  
-        // Return the created event as the response
-        return {
-            statusCode: 201,
-            body: JSON.stringify(item),
-        };
-    } catch (error) {
-        console.error("Error saving event:", error);
+    statusCode = 201;
  
-        // Return an error response
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Could not save event", error: error.message }),
-        };
-    }
+    return {
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            statusCode,
+            event: newEvent,
+        }),
+        statusCode,
+        event: newEvent,
+    };
+ 
+ 
+ 
 };
