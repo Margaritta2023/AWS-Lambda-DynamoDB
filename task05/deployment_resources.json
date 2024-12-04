@@ -33,7 +33,7 @@
     "dependencies": [],
     "resources": {
       "/":{
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
          
           "authorization_type": "NONE", 
@@ -49,7 +49,7 @@
       },
 
       "/events":{
-        "enable_cors": true,
+        "enable_cors": false,
         "POST": {
          
           "authorization_type": "NONE", 
