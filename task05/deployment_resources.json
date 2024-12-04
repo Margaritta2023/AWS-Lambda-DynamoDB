@@ -32,9 +32,26 @@
     "deploy_stage": "api",
     "dependencies": [],
     "resources": {
-      "/events":{
+      "/":{
+        "enable_cors": true,
         "POST": {
-          "enable_cors": true,
+         
+          "authorization_type": "NONE", 
+          "integration_type": "lambda", 
+          "lambda_name":"api_handler",
+          "api_key_required": false, 
+          "method_request_parameters": {}, 
+          "integration_request_body_template": {}, 
+          "responses": [], 
+          "integration_responses": [], 
+          "default_error_pattern": true 
+        }
+      },
+
+      "/events":{
+        "enable_cors": true,
+        "POST": {
+         
           "authorization_type": "NONE", 
           "integration_type": "lambda", 
           "lambda_name":"api_handler",
