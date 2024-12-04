@@ -17,6 +17,7 @@ exports.handler = async (event) => {
         }
 
         const { principalId, content } = body;
+        console.log('Cooontent',content)
 
         if (!principalId || typeof content !== 'object') {
             console.error('Validation failed:', { principalId, content });
@@ -39,8 +40,8 @@ exports.handler = async (event) => {
             },
         };
 
-        console.log('Using DynamoDB table:', process.env.TARGET_TABLE);
-        console.log('Writing item:', JSON.stringify(newItem, null, 2));
+        console.log('Using DynamoDB table:---------------', process.env.TARGET_TABLE);
+        console.log('Writing item:-------------', JSON.stringify(newItem, null, 2));
 
         await dynamoDB.put(newItem).promise();
 
