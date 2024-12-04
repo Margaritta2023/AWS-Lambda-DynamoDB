@@ -1,15 +1,13 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-console.log("11111111111111")
 
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
     try {
         let body;
-        console.log("11111111111111")
-
+   
         if (event.body) {
             console.log('Triggered by API Gateway');
             body = JSON.parse(event.body);
@@ -17,10 +15,9 @@ exports.handler = async (event) => {
             console.log('Direct Invocation');
             body = event;
         }
-        console.log("11111111111111")
 
         const { principalId, content } = body;
-        console.log("11111111111111")
+      
         console.log('Cooontent',content)
 
         if (!principalId || typeof content !== 'object') {
@@ -33,8 +30,7 @@ exports.handler = async (event) => {
                 headers: { 'Content-Type': 'application/json' }
             };
         }
-        console.log("11111111111111")
-
+      
         const newItem = {
             TableName: process.env.TARGET_TABLE,
             Item: {
@@ -44,10 +40,9 @@ exports.handler = async (event) => {
                 body: content,
             },
         };
-        console.log("11111111111111")
-
-        console.log('Using DynamoDB table:---------------', process.env.TARGET_TABLE);
-        console.log('Writing item:-------------', JSON.stringify(newItem, null, 2));
+       
+        console.log('Using DynamoDB table:', process.env.TARGET_TABLE);
+        console.log('Writing item:', JSON.stringify(newItem, null, 2));
 
         await dynamoDB.put(newItem).promise();
 
