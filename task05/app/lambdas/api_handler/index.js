@@ -1,16 +1,25 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid'); // Import UUID generator
+const { v4: uuidv4 } = require('uuid'); 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2)); // Log entire incoming event
+    console.log('Received event:', JSON.stringify(event, null, 2)); 
 
     try {
-        // Parse the incoming request body
-        const body = JSON.parse(event.body);
+        let body;
+
+     
+        if (event.body) {
+            console.log('Triggered by API Gateway');
+            body = JSON.parse(event.body);
+        } else {
+
+            console.log('Direct Invocation');
+            body = event;
+        }
+
         const { principalId, content } = body;
 
-        // Validate the input
         if (!principalId || typeof content !== 'object') {
             console.error('Validation failed:', { principalId, content });
             return {
@@ -21,25 +30,25 @@ exports.handler = async (event) => {
             };
         }
 
-        // Prepare the new item
+        
         const newItem = {
-            TableName: process.env.TARGET_TABLE, // Use environment variable
+            TableName: process.env.TARGET_TABLE, 
             Item: {
-                id: uuidv4(), // Generate UUID v4 for the ID
-                principalId: Number(principalId), // Ensure principalId is a number
-                createdAt: new Date().toISOString(), // Add createdAt field in ISO 8601 format
-                body: content, // Store content as 'body'
+                id: uuidv4(), 
+                principalId: Number(principalId), 
+                createdAt: new Date().toISOString(), 
+                body: content, 
             },
         };
 
         console.log('Writing item to DynamoDB:', newItem);
 
-        // Store the item in DynamoDB
+      
         await dynamoDB.put(newItem).promise();
 
         console.log('Successfully wrote item to DynamoDB.');
 
-        // Return a success response
+     
         return {
             statusCode: 201,
             body: JSON.stringify({
