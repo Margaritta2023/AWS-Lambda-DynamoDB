@@ -1,57 +1,53 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
+ 
+// Initialize DynamoDB DocumentClient
+const dynamoDb = new AWS.DynamoDB.DocumentClient();
+const tableName = "Events"; // Replace with your DynamoDB table name
+ 
 exports.handler = async (event) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
-
     try {
-        let body;
-        if (event.body) {
-            console.log('Triggered by API Gateway');
-            body = JSON.parse(event.body);
-        } else {
-            console.log('Direct Invocation');
-            body = event;
-        }
-
-        const { principalId, content } = body;
-        if (!principalId || typeof content !== 'object') {
-            console.error('Validation failed:', { principalId, content });
+        // Parse the incoming request body
+        const body = JSON.parse(event.body);
+ 
+        // Validate required fields
+if (!body.name || !body.details) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: 'Invalid input.' }),
-                headers: { 'Content-Type': 'application/json' }
+                body: JSON.stringify({ message: "Missing required fields: name, details" }),
             };
         }
-
-        console.log('Environment TARGET_TABLE:', process.env.TARGET_TABLE);
-
-        const newItem = {
-            TableName: process.env.TARGET_TABLE,
-            Item: {
-                id: uuidv4(),
-                principalId: Number(principalId),
-                createdAt: new Date().toISOString(),
-                body: content,
-            },
+ 
+        // Generate a unique event ID and timestamp
+        const eventId = uuidv4();
+        const timestamp = new Date().toISOString();
+ 
+        // Create the event item to insert into DynamoDB
+        const item = {
+            eventId,
+name: body.name,
+            details: body.details,
+            createdAt: timestamp,
         };
-
-        console.log('Writing item to DynamoDB:', JSON.stringify(newItem, null, 2));
-        await dynamoDB.put(newItem).promise();
-        console.log('Successfully wrote item to DynamoDB.');
-
+ 
+        // Save the item to the DynamoDB table
+        await dynamoDb.put({
+            TableName: tableName,
+            Item: item,
+        }).promise();
+ 
+        // Return the created event as the response
         return {
             statusCode: 201,
-            body: JSON.stringify({ message: 'Event stored successfully', item: newItem.Item }),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify(item),
         };
     } catch (error) {
-        console.error('Error occurred while storing event:', JSON.stringify(error, null, 2));
+        console.error("Error saving event:", error);
+ 
+        // Return an error response
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'Error storing event', error: error.message }),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({ message: "Could not save event", error: error.message }),
         };
     }
 };
